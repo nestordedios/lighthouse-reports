@@ -22,14 +22,12 @@ const httpsAgent = new https.Agent({
   rejectUnauthorized: false // Ignore self-signed certificate errors
 });
 
-// Function to determine the directory path based on month, content type, category, and score range
-function getDirectoryPath(url, category, score) {
+// Function to determine the directory path based on month, content type and score range
+function getDirectoryPath(url) {
   const date = format(new Date(), 'yyyy-MM'); // Current month as "YYYY-MM"
   const [, contentType] = new URL(url).pathname.split('/'); // Content type from the URL
 
-  // Determine score range folder based on score
-  const scoreRange = score <= 49 ? '0-49' : score <= 89 ? '50-89' : '90-100';
-  const dirPath = path.join(reportsDir, date, contentType, category, scoreRange);
+  const dirPath = path.join(reportsDir, date, contentType);
 
   // Ensure the directory structure exists
   fs.mkdirSync(dirPath, { recursive: true });
@@ -37,10 +35,14 @@ function getDirectoryPath(url, category, score) {
 }
 
 // Function to generate a safe filename from a URL
-function generateFilename(url, formFactor) {
-  // Replace slashes with underscores to create a valid filename
-  const safeUrlPath = url.replace(/https?:\/\//, '').replace(/\//g, '_');
-  return `report_${formFactor}_${safeUrlPath}.html`;
+function generateFilename(url, deviceType, scores) {
+  const { performance, accessibility, bestPractices, seo } = scores;
+
+  // Format the filename with scores, device type, and URL path
+  const baseName = new URL(url).pathname.replace(/\//g, '_');
+  const filename = `report_${deviceType}_${baseName}_P${performance}_A${accessibility}_B${bestPractices}_S${seo}.html`;
+
+  return filename;
 }
 
 // Function to run Lighthouse on a given URL and conditionally save the report
@@ -79,33 +81,25 @@ async function saveLighthouseReport(result, url, deviceType) {
     seo: result.lhr.categories.seo.score * 100,
   };
 
-  const currentMonth = new Date().toISOString().slice(0, 7); // Format: YYYY-MM
-  const urlPath = new URL(url).pathname;
-  const contentType = urlPath.split('/')[1] || 'general';
-  const slug = urlPath.split('/').pop() || 'index';
+  // Check if any score is below 100
+  const isAnyScoreBelow100 = Object.values(scores).some(score => score < 100);
 
-  // Loop through each category and save report if score is below 100
-  for (const [category, score] of Object.entries(scores)) {
-    if (score < 100) {
-      const scoreRangeFolder = score < 50 ? '0-49' : score < 90 ? '50-89' : '90-100';
-      const reportFolderPath = path.join(
-        'output',
-        currentMonth,
-        contentType,
-        category,
-        scoreRangeFolder
-      );
+  if (isAnyScoreBelow100) {
+    const baseFolder = getDirectoryPath(url);
+    // const baseFolder = path.join(process.cwd(), `${contentType}`, deviceType);
 
-      // Ensure the directory structure exists
-      fs.mkdirSync(reportFolderPath, { recursive: true });
+    // Create directories if they don’t exist
+    fs.mkdirSync(baseFolder, { recursive: true });
 
-      // Define the report filename with the device type (desktop/mobile) and slug
-      const reportFilePath = path.join(reportFolderPath, `${slug}_${deviceType}.html`);
+    // Generate a unique file name with URL and device type
+    const fileName = generateFilename(url, deviceType, scores);
+    const filePath = path.join(baseFolder, fileName);
 
-      // Save the report file
-      fs.writeFileSync(reportFilePath, result.report[0]);
-      console.log(`Saved ${category} report for ${url} with score ${score} at ${reportFilePath}`);
-    }
+    // Write report to file
+    fs.writeFileSync(filePath, result.report[0], 'utf-8');
+    console.log(`Report saved: ${filePath}`);
+  } else {
+    console.log(`All scores are 100. No report generated for ${url} on ${deviceType}.`);
   }
 }
 
