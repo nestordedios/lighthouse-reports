@@ -2,8 +2,8 @@
 
 This script automates the generation of Google Lighthouse reports for all pages listed in a website’s sitemap.
 
-It supports analysis for both mobile and desktop devices, organizes the reports based on scores for each report category 
-and saves the reports where the score is less than 100, helping to focus on areas needing improvement.
+It supports analysis for both mobile and desktop devices, organizes and saves those reports that score lower than 100 on
+any type of analysis (Accessibility, Performance, Best Practices and SEO), helping to focus on areas needing improvement.
 
 ## Table of Contents
 - [Features](#features)
