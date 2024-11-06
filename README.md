@@ -58,33 +58,24 @@ node runLighthouseOnSitemap.js https://example.com/sitemap.xml
 Generated reports will be organized in the following structure:
 
 ```php
-output/
+lighthouse_reports/
 └── YYYY-MM/
     └── <content-type>/
-        └── <category>/
-            ├── 0-49/
-            ├── 50-89/
-            └── 90-100/
-                ├── <page-slug>_desktop.html
-                └── <page-slug>_mobile.html
+        ├── report_desktop_<page-slug>_P<performance-score>_A<accessibility-score>_B<best-practices-score>_S<seo-score>.html
+        └── report_mobile_<page-slug>_P<performance-score>_A<accessibility-score>_B<best-practices-score>_S<seo-score>.html
 ```
-
+lighthouse_reports/2024-11/onze-diensten/report_mobile__onze-diensten_digital-user-experience_user-experience-design_P91_A86_B79_S92.html
 - **YYYY-MM**: The year and month when the report was generated.
 - **Content-Type**: Based on the path after the domain in the URL.
-- **Category**: The Lighthouse report category (performance, accessibility, bestPractices, seo).
-- **Score Range**: Reports are organized into folders named 0-49, 50-89, and 90-100 based on the score achieved. This is
-how LightHouse categorizes the scores.
-- **Report Files**: Each report is named using the page slug followed by the device type (desktop or mobile).
+- **Report Files**: Each report is named using the device type (desktop or mobile) followed by the page slug and report scores .
 
 #### Example
 If you analyze https://example.com/posts/article-123 in November 2024, the folder structure will look like this:
 
 ```css
 output/
-    └── 2024-11/
-        └── posts/
-            └── performance/
-                └── 50-89/
-                    ├── article-123_desktop.html
-                    └── article-123_mobile.html
+└── 2024-11/
+    └── posts/
+        ├── report_desktop_article-123_P56_A35_B100_S78.html
+        └── report_mobile_article-123_P45_A39_B87_S48.html
 ```
